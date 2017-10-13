@@ -1,0 +1,66 @@
+---
+title: "Plotly Graphics"
+author: "David P"
+date: "10/12/2017"
+output: html_document
+---
+
+```{r Setup, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+library(RCurl)
+library(plotly)
+```
+
+
+```{r GetCleanData,echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+# Get the data
+df <- read.csv(text=getURL('https://raw.githubusercontent.com/NineTenths/data/master/bad-drivers/bad-drivers.csv'))
+
+# Create the column names
+cNames <- c('State','FatalCollision','FatalSpeeding','FatalAlchohol','FatalDistracted','FatalFirstAcc','InsPrem','InsLosses')
+names(df) <- cNames
+
+# Add state abbreviation
+df$code <- state.abb[match(df$State,state.name)]
+```
+
+```{r PreparePlot,echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+# give state boundaries a white border
+l <- list(color = toRGB("white"), width = 2)
+# specify some map projection/options
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white')
+)
+
+df$hover <- with(df,paste(State,'<br>',"Number",FatalCollision,"Speeding",FatalSpeeding,'<br>',
+                          "Alchohol",FatalAlchohol,"Not Distracted",FatalDistracted,'<br>',
+                          "First",FatalFirstAcc,'<br>',"Premiums",InsPrem,"Losses",InsLosses))
+```
+
+The following interactive map was created using Plotly with data from [fivethirtyeight.com](http://fivethirtyeight.com/). The data for this plot is available on the [fivethirtyeight GitHub](https://github.com/fivethirtyeight/data). 
+
+This plot illustrates the number of fatal automobile collisions per billion miles of road by US state. Hovering over any state will create a pop-up that provides the following additional information:
+
+* Percentage of drivers who were involved in fatal collisions while speeding
+* Percentage of drivers who were involved in fatal collisions while alchohol-impared
+* Percentage of drivers who were involved in fatal collisions and were not distracted
+* Percentage of drivers who were involved in fatal collisions and it was their first accident
+* Car insurance premiums ($)
+* Losses incurred by insurance companies for collisions per insured driver ($)
+
+```{r CreatePlot,echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+p <- plot_geo(df,locationmode='USA-states') %>%
+  add_trace(
+    z = ~FatalCollision, text = ~hover, locations = ~code,
+    color = ~FatalCollision, colors = 'Reds'
+  ) %>%
+  colorbar(title='Fatalities') %>%
+  layout(
+    title='Fatal Collisions per Billion Miles by State<br>(Hover for breakdown)',
+    geo=g
+  )
+p
+```
+
