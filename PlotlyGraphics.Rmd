@@ -2,7 +2,7 @@
 title: "Plotly Graphics"
 author: "David P"
 date: "10/12/2017"
-output: html_document
+output: slidy_presentation
 ---
 
 ```{r Setup, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
